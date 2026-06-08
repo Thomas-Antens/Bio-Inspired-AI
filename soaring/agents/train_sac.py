@@ -26,7 +26,7 @@ from soaring.env.soaring_env import SoaringEnv
 SAC_KWARGS = dict(
     policy          = "MlpPolicy",
     learning_rate   = 3e-4,
-    buffer_size     = 200_000,
+    buffer_size     = 500_000,
     learning_starts = 5_000,
     batch_size      = 256,
     tau             = 0.005,
@@ -53,16 +53,15 @@ PPO_KWARGS = dict(
 )
 
 FIELD_KW = dict(
-    n_thermals     = 12,             
+    n_thermals     = 40,             # scaled to preserve density on 15000×7500 domain
     wind           = (-5.0, 0.0),
     W_range        = (1.0, 3.0),
-    R_range        = (200.0, 350.0), 
-                                   
+    R_range        = (200.0, 350.0),
     lifetime_range = (500, 1200),
     turbulence_amp = 0.05,
 )
 
-STRENGTH_RANGE = (0.3, 2.5)   # randomised per episode for MacCready sweep
+STRENGTH_RANGE = (0.3, 4.0)   # extended to reach Mc > 3 m/s for MacCready sweep
 
 
 
@@ -96,15 +95,16 @@ def make_env(seed, algo="sac"):
     return _inner
 
 
-def train_one(algo, seed, timesteps, results_dir, extra_kw=None):
+def train_one(algo, seed, timesteps, results_dir, extra_kw=None, obs_mask=None):
     os.makedirs(results_dir, exist_ok=True)
     model_dir = os.path.join(results_dir, "models")
     os.makedirs(model_dir, exist_ok=True)
 
     env_fns = [make_env(seed + i, algo) for i in range(4 if algo == "ppo" else 1)]
+    _mask = obs_mask
     vec_env = make_vec_env(lambda: SoaringEnv(
         field_kw=dict(FIELD_KW), strength_scale_range=STRENGTH_RANGE,
-        near_thermal_prob=0.4),
+        near_thermal_prob=0.4, obs_mask=_mask),
         n_envs=4 if algo == "ppo" else 1, seed=seed)
 
     tb_log = os.path.join(results_dir, "tensorboard")
@@ -185,4 +185,4 @@ def main(
 
 
 if __name__ == "__main__":
-    main(algo = "sac", seeds = (0,), timesteps = 1_000_000, results_dir = "results")
+    main(algo = "sac", seeds = (0,), timesteps = 1_500_000, results_dir = "results")
