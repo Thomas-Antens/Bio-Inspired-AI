@@ -41,13 +41,13 @@ SAC_KWARGS = dict(
 PPO_KWARGS = dict(
     policy          = "MlpPolicy",
     learning_rate   = 3e-4,
-    n_steps         = 2048,
+    n_steps         = 4096,
     batch_size      = 64,
     n_epochs        = 10,
     gamma           = 0.995,
     gae_lambda      = 0.95,
     clip_range      = 0.2,
-    ent_coef        = 0.01,
+    ent_coef        = 0.05,
     policy_kwargs   = dict(net_arch=[64, 64]),
     verbose         = 0,
 )
@@ -185,4 +185,6 @@ def main(
 
 
 if __name__ == "__main__":
-    main(algo = "sac", seeds = (0,), timesteps = 1_500_000, results_dir = "results")
+    main(algo = "sac", seeds = (0, 1), timesteps = 1_500_000, results_dir = "results")
+    main(algo = "ppo", seeds = (0, 1), timesteps = 5_000_000, results_dir = "results")
+

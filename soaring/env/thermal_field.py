@@ -73,8 +73,8 @@ class ThermalField:
     def __init__(
         self,
         n_thermals     = 6,
-        domain_x       = 5500.0,
-        domain_y       = 4000.0,
+        domain_x       = 15000.0,
+        domain_y       = 7500.0,
         wind           = (-5.0, 0.0),
         W_range        = (1.0, 3.0),
         R_range        = (100.0, 200.0),

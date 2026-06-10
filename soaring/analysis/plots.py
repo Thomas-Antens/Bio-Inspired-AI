@@ -53,11 +53,11 @@ def _load_reward_curves(out_dir, algo, k=50):
     return curves
 
 
-def plot_learning_curves_sac(out_dir):
+def plot_learning_curves(algo, out_dir):
     """SAC-only learning curves, one line per seed + mean ± std band."""
-    curves = _load_reward_curves(out_dir, "sac")
+    curves = _load_reward_curves(out_dir, algo)
     if not curves:
-        print("No SAC reward files found; skipping SAC learning curve.")
+        print(f"No {algo.upper()} reward files found; skipping {algo.upper()} learning curve.")
         return
 
     fig, ax = plt.subplots(figsize=(10, 5))
@@ -82,7 +82,7 @@ def plot_learning_curves_sac(out_dir):
     ax.legend(fontsize=9)
     ax.grid(True, alpha=0.3)
     plt.tight_layout()
-    _save(fig, os.path.join(out_dir, "learning_curves_sac.pdf"))
+    _save(fig, os.path.join(out_dir, f"learning_curves_{algo}.pdf"))
 
 
 def plot_learning_curves_comparison(out_dir):
@@ -354,8 +354,8 @@ def plot_trajectory_snapshots(env, out_dir):
         hdg = 180.0
         ax.annotate(
             "", zorder=8,
-            xy=(x[idx] + hdg * np.cos(psi_arr[idx]),
-                y[idx] + hdg * np.sin(psi_arr[idx])),
+            xy=(x[idx] + hdg * np.cos(psi_arr[idx]) * 2,
+                y[idx] + hdg * np.sin(psi_arr[idx]) * 2),
             xytext=(x[idx], y[idx]),
             arrowprops=dict(arrowstyle="-|>", color="white", lw=2.0),
         )
@@ -379,25 +379,26 @@ def plot_trajectory_snapshots(env, out_dir):
 
 
 def plot_episode_timeseries(env, out_dir):
-    """Altitude, bank, airspeed over time for one episode."""
+    """Altitude, bank, airspeed, heading over time for one episode."""
     traj = env.get_trajectory()
     if not traj:
         return
     t    = np.arange(len(traj["z"])) * DT
     z    = traj["z"]
     phi  = np.rad2deg(traj["phi"])
+    psi  = np.rad2deg(traj["psi"]) % 360   
     V    = traj["V"]
     w    = traj["w"]
 
     contacts = w > 0.3
 
-    fig, axes = plt.subplots(3, 1, figsize=(12, 9), sharex=True)
+    fig, axes = plt.subplots(4, 1, figsize=(12, 11), sharex=True)
 
     axes[0].plot(t, z, "b-", lw=1.5, label="Altitude AGL")
     axes[0].fill_between(t, 0, z, where=contacts, alpha=0.25,
                          color="green", label="Thermal contact")
     axes[0].set_ylabel("Altitude [m]", fontsize=10)
-    axes[0].set_title("Episode flight: altitude, bank, airspeed")
+    axes[0].set_title("Episode flight: altitude, bank, heading, airspeed")
     axes[0].legend(fontsize=9)
     axes[0].grid(True, alpha=0.3)
 
@@ -408,14 +409,20 @@ def plot_episode_timeseries(env, out_dir):
     axes[1].set_ylim(-55, 55)
     axes[1].grid(True, alpha=0.3)
 
-    axes[2].plot(t, V, "g-", lw=1.5, label="Airspeed")
-    axes[2].fill_between(t, 18, 45, where=contacts, alpha=0.15,
-                         color="green", label="Thermal contact")
-    axes[2].set_ylabel("Airspeed [m/s]", fontsize=10)
-    axes[2].set_xlabel("Time [s]",       fontsize=10)
-    axes[2].set_ylim(16, 48)
-    axes[2].legend(fontsize=9)
+    axes[2].plot(t, psi, "m-", lw=1.2)
+    axes[2].fill_between(t, psi.min() - 5, psi.max() + 5,
+                         where=contacts, alpha=0.15, color="green")
+    axes[2].set_ylabel("Heading ψ [deg]", fontsize=10)
     axes[2].grid(True, alpha=0.3)
+
+    axes[3].plot(t, V, "g-", lw=1.5, label="Airspeed")
+    axes[3].fill_between(t, 18, 45, where=contacts, alpha=0.15,
+                         color="green", label="Thermal contact")
+    axes[3].set_ylabel("Airspeed [m/s]", fontsize=10)
+    axes[3].set_xlabel("Time [s]",       fontsize=10)
+    axes[3].set_ylim(16, 48)
+    axes[3].legend(fontsize=9)
+    axes[3].grid(True, alpha=0.3)
 
     plt.tight_layout()
     _save(fig, os.path.join(out_dir, "episode_timeseries.pdf"))
@@ -492,8 +499,8 @@ def make_animation(env, out_dir, fps=12, dpi=90, n_frames=120):
                 mec="k", mew=1.2, zorder=7)
         hdg = 160.0
         ax.annotate("", zorder=8,
-                    xy=(x[idx] + hdg * np.cos(psi_arr[idx]),
-                        y[idx] + hdg * np.sin(psi_arr[idx])),
+                    xy=(x[idx] + hdg * np.cos(psi_arr[idx]) * 2,
+                        y[idx] + hdg * np.sin(psi_arr[idx]) * 2),
                     xytext=(x[idx], y[idx]),
                     arrowprops=dict(arrowstyle="-|>", color="white", lw=2.0))
 
@@ -557,7 +564,7 @@ def main(
     plot_maccready_theory(results_dir)
 
     print("Generating learning curves ...")
-    plot_learning_curves_sac(results_dir)
+    plot_learning_curves(algo, results_dir)
     plot_learning_curves_comparison(results_dir)
 
     if model_path is not None:

@@ -44,9 +44,9 @@ PHI_RATE_MAX = np.deg2rad(30.0)      # maximum bank rate [rad/s]
 DOMAIN_X     = 15000.0      # domain width east-west [m]
 DOMAIN_Y     = 7500.0       # domain height north-south [m]
 START_X      = 250.0        # default start x [m]
-START_Y      = 3750.0       # default start y [m]  (centred in domain)
+START_Y      = 6500.0       # default start y [m]  (centred in domain)
 GOAL_X       = 14750.0      # goal x [m]  (14500 m course, 250 m east buffer)
-GOAL_Y       = 750.0       # goal y [m]
+GOAL_Y       = 1250.0       # goal y [m]
 GOAL_RADIUS  = 100.0        # arrival radius [m]
 INIT_ALT     = 300.0        # starting altitude AGL [m] (was 150; more margin → less risk-aversion)
 ALT_NORM     = 500.0        # altitude normalisation reference [m]
@@ -340,7 +340,7 @@ class SoaringEnv(gym.Env):
         }
 
     def _dist_to_goal(self):
-        return float(np.hypot(self.x - GOAL_X, self.y - GOAL_Y))
+        return float(np.hypot(self.x - self._goal_x, self.y - self._goal_y))
 
     def render(self):
         """Return trajectory buffer for external plotting."""
