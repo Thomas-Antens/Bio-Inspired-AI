@@ -145,7 +145,7 @@ class GliderPolar:
         """
         V_arr = np.linspace(15.0, 50.0, 300)
 
-        ax.plot(V_arr, -self.sink(V_arr), "b-", lw=2.5, label="Sink polar")
+        ax.plot(V_arr, -self.sink(V_arr), "b-", lw=2.5, label="Sink Polar")
         ax.axhline(0.0, color="k", lw=0.8, ls="--", alpha=0.35)
 
         V_bg = self.best_glide_speed()
@@ -168,15 +168,15 @@ class GliderPolar:
                 Vl    = np.array([0.0, V_opt * 1.2])
                 ax.plot(Vl, Mc + slope * Vl, "--", color=col, alpha=0.7, lw=1.3)
 
-                ax.plot(0, Mc, "v", color=col, ms=7, zorder=6,
+                ax.plot(0, Mc, "x", color=col, ms=7, zorder=6,
                         clip_on=False)
-                ax.plot(V_opt, -s_opt, "^", color=col, ms=7, zorder=6,
+                ax.plot(V_opt, -s_opt, "s", color=col, ms=7, zorder=6,
                         label=f"Mc={Mc:.1f} → V*={V_opt:.0f} m/s")
 
         ax.set_xlabel("Airspeed V [m/s]", fontsize=11)
-        ax.set_ylabel("Vertical speed [m/s]", fontsize=11)
+        ax.set_ylabel("Vertical Speed [m/s]", fontsize=11)
         ax.set_title(
-            "Glider polar",
+            "Glider Polar",
             fontsize=10,
         )
         ax.legend(fontsize=8, ncol=2)
@@ -197,9 +197,9 @@ class GliderPolar:
         if Mc_ref is not None:
             ax.scatter(Mc_ref, self.stf_curve(Mc_ref), c="red", s=70,
                        zorder=5, label="Reference points")
-        ax.set_xlabel("Expected climb rate Mc [m/s]", fontsize=11)
-        ax.set_ylabel("Optimal cruise speed [m/s]",   fontsize=11)
-        ax.set_title("MacCready speed-to-fly curve")
+        ax.set_xlabel("Expected Climb Rate Mc [m/s]", fontsize=11)
+        ax.set_ylabel("Optimal Cruise Speed [m/s]",   fontsize=11)
+        ax.set_title("MacCready Speed-to-Fly Curve")
         ax.legend(fontsize=10)
         ax.grid(True, alpha=0.3)
 

@@ -1,5 +1,23 @@
 """
 Reward-structure analysis for the cross-country soaring environment.
+
+Covers the full design rationale in four report-quality figures:
+
+  fig1_fly_through_problem.pdf  -- original fly-through problem and combined fix
+  fig2_parameter_sweep.pdf      -- W_thermal bonus sweep + W_prog speed-gradient sweep
+  fig3_altitude_cap.pdf         -- proof that alt_scale decay prevents indefinite thermalling
+  fig4_reward_structure.pdf     -- final reward landscape (in-thermal + inter-thermal)
+
+Key design decisions reflected:
+  - Progress suppressed when w > LIFT_THR (makes circling beat fly-through per-step)
+  - Banking bonus W_THERMAL * w * DT when phi > BANK_THR (strongly prefers circling)
+  - alt_scale = max(0, 1 - margin/ALT_NORM) applied to (W_alt*dz + bonus):
+      provably exits any thermal at finite margin surplus (< ALT_NORM for any w)
+  - W_prog = 0.08 creates clear inter-thermal speed gradient (MacCready speed signal)
+
+Usage:
+    from soaring.env.reward_analysis import main
+    main()   # saves to results/reward_analysis/
 """
 
 import os
@@ -37,7 +55,6 @@ plt.rcParams.update({
 })
 
 _SINK_CIRCLE = POLAR.sink_banked(V_CIRCLE, PHI_CIRCLE)   # ~0.61 m/s
-_SINK_35     = POLAR.sink(35.0)                            # ~1.11 m/s
 
 
 # ── Reward helpers ────────────────────────────────────────────────────────────
@@ -85,7 +102,6 @@ def _exit_margin(w):
     return 600   # did not find (very strong thermal)
 
 
-# ── Figure 1: fly-through problem and combined fix ────────────────────────────
 
 def fig1_fly_through_problem(out_dir):
     """
@@ -107,7 +123,7 @@ def fig1_fly_through_problem(out_dir):
         for bar, r in zip(bars, rewards):
             va = "bottom" if r >= 0 else "top"
             ax.text(bar.get_x() + bar.get_width() / 2,
-                    r + 0.012 * np.sign(r), f"{r:+.3f}",
+                    r + 0.0035 * np.sign(r), f"{r:+.3f}",
                     ha="center", va=va, fontsize=8)
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 4))
@@ -122,7 +138,7 @@ def fig1_fly_through_problem(out_dir):
         W_alt_orig*(w-POLAR.sink(40))*DT + W_prog_orig*35*DT*0.5 + W_STEP,
     ]
     _panel(axes[0], rewards_orig,
-           "Without suppression\n(W_alt=0.70, W_prog=0.06, no bonus)")
+           "Without Suppression\n(W_alt=0.70, W_prog=0.06, no bonus)")
 
     # Right: new design (suppression + bonus, margin=0 so alt_scale=1)
     rewards_new = [
@@ -132,10 +148,10 @@ def fig1_fly_through_problem(out_dir):
         _r_through_sup(w, V=40, margin=0),       # straight V=40: suppressed, no bonus
     ]
     _panel(axes[1], rewards_new,
-           "Suppression + banking bonus\n"
+           "Suppression + Banking Bonus\n"
            f"(W_alt={W_ALT}, W_prog={W_PROG}, W_thermal={W_THERMAL})")
 
-    fig.suptitle(f"Per-step reward in a {w} m/s thermal (margin = 0, alt_scale = 1)",
+    fig.suptitle(f"Per-step Reward in a {w} m/s Thermal (margin = 0, alt_scale = 1)",
                  fontsize=12)
     fig.tight_layout()
     _save(fig, out_dir, "fig1_fly_through_problem.pdf")
@@ -293,10 +309,10 @@ def fig3_altitude_cap(out_dir):
         ax.annotate(f"{em} m", (w, em), textcoords="offset points",
                     xytext=(5, 4), fontsize=8, color=col)
 
-    ax.set_xlabel("Peak updraft  w  [m/s]")
-    ax.set_ylabel("Exit margin  [m]")
-    ax.set_title("Thermalling exit margin vs thermal strength\n"
-                 "(agent leaves thermal once this surplus is reached)")
+    ax.set_xlabel("Peak Updraft  w  [m/s]")
+    ax.set_ylabel("Exit Margin  [m]")
+    ax.set_title("Thermalling Exit Margin vs Thermal Strength\n"
+                 "(agent leaves thermal once this gliding surplus is reached)")
     ax.set_xlim(w_vals[0], w_vals[-1])
     ax.axvline(12.0, color=C["red"], linestyle=":", linewidth=0.8,
                label="max possible w (scale=4.0)")
@@ -305,7 +321,7 @@ def fig3_altitude_cap(out_dir):
     ax.grid(linestyle=":", alpha=0.4)
 
     fig.suptitle(
-        "Altitude cap prevents indefinite thermalling  "
+        "Altitude Cap Prevents Infinite Thermalling  "
         f"(alt_scale = max(0, 1 - margin / {ALT_NORM:.0f}))",
         fontsize=12)
     fig.tight_layout()
@@ -336,7 +352,7 @@ def fig4_reward_structure(out_dir):
     ax.plot(w_range, r_sup25,   color=C["orange"],  linestyle="--",
             label="fly-through V=25  (suppressed, no bonus)")
     ax.plot(w_range, r_unsup35, color=C["red"],     linestyle="-.",
-            label="fly-through V=35  (no suppression) — baseline")
+            label="fly-through V=35  (no suppression) baseline")
     ax.axhline(r_out35, color=C["grey"], linestyle=":", linewidth=1.2,
                label=f"outside V=35  {r_out35:+.3f}")
 
@@ -364,9 +380,8 @@ def fig4_reward_structure(out_dir):
                label=f"lift threshold {LIFT_THR} m/s")
     ax.axhline(0, color="black", linewidth=0.7)
     ax.set_xlabel("Updraft  w  [m/s]")
-    ax.set_ylabel("Per-step reward")
-    ax.set_title("In-thermal reward  (alt_scale = 1)\n"
-                 "red dot: where circling beats best unsuppressed alternative")
+    ax.set_ylabel("Per-step Reward")
+    ax.set_title("In-thermal Reward  (alt_scale = 1)")
     ax.set_xlim(0, 5.0)
     ax.set_ylim(-0.8, 5.0)
     ax.legend(framealpha=0.85, fontsize=8)
@@ -402,15 +417,15 @@ def fig4_reward_structure(out_dir):
             bbox=dict(boxstyle="round,pad=0.3", fc="white", ec=C["grey"], alpha=0.8))
 
     ax.set_xlabel("Airspeed  V  [m/s]")
-    ax.set_ylabel("Per-step reward  (alt_scale = 1)")
-    ax.set_title(f"Outside-thermal reward\n"
+    ax.set_ylabel("Per-step Reward  (alt_scale = 1)")
+    ax.set_title(f"Outside-thermal Reward\n"
                  f"(W_alt={W_ALT}, W_prog={W_PROG}, headwind={HEADWIND} m/s)")
     ax.set_xlim(18, 52)
     ax.legend(framealpha=0.85)
     ax.grid(linestyle=":", alpha=0.4)
 
     fig.suptitle(
-        f"Final reward structure  —  W_alt={W_ALT},  W_prog={W_PROG},  "
+        f"Final reward structure | W_alt={W_ALT},  W_prog={W_PROG},  "
         f"W_thermal={W_THERMAL},  W_step={W_STEP}",
         fontsize=12)
     fig.tight_layout()
@@ -435,7 +450,6 @@ def main(out_dir="results/reward_analysis"):
     fig2_parameter_sweep(out_dir)
     fig3_altitude_cap(out_dir)
     fig4_reward_structure(out_dir)
-    print("Done.")
 
 
 if __name__ == "__main__":

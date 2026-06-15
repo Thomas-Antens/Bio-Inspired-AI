@@ -55,36 +55,23 @@ MAX_STEPS    = 9000         # episode time limit (≈ 75 min at DT=0.5 s)
 
 _MIN_NEAR_GOAL_DIST   = 2000.0  # near-thermal start must be ≥ this far from goal [m]
 
-_W_ALT       =  1.00   # per metre of altitude gained
-_W_PROGRESS  =  0.08   # per metre closer to goal
-_W_STEP      = -0.20   # time pressure → MacCready speed signal
-_R_SUCCESS   =  600.0  # goal bonus
+_W_ALT       =  1.00   # per meter of altitude gained
+_W_PROGRESS  =  0.08   # per meter closer to goal
+_W_STEP      = -0.20   # time pressure 
+_R_SUCCESS   =  600.0  
 _R_CRASH     = -500.0
 _R_TIMEOUT   = -200.0
 
 # Progress is suppressed when in significant lift so that circling beats
-# flying straight through a thermal on a per-step basis.  Without this,
-# flying east at V=25 through a 2 m/s thermal scores +0.875/step vs circling
-# at +0.115/step — the agent never learns to thermal.
+# flying straight through a thermal on a per-step basis.
 _LIFT_THRESHOLD = 0.5             # [m/s]  updraft above which progress is suppressed
 _BANK_THRESHOLD = np.deg2rad(20)  # [rad]  min bank angle to earn the thermalling bonus
 
-# When the agent is banking in significant lift it earns a bonus proportional
-# to updraft strength.  This makes circling strongly preferred over flying
-# straight through a thermal (+1.50 vs +0.48 per step in a 2 m/s thermal)
-# while the suppression above keeps the routing clean.
 _W_THERMAL = 1.0  # bonus weight: W_THERMAL * w_curr * DT, scaled by alt_scale
 
-# Both the altitude reward and the thermalling bonus are scaled down as the
-# agent's glide margin grows, decaying linearly to zero at margin = ALT_NORM.
-# This provably prevents indefinite thermalling: for any updraft strength there
-# exists a finite margin at which flying toward the goal beats circling
-# (verified: ~230 m for 2 m/s thermals, <430 m for 7.5 m/s thermals).
 
 # EMA decay for recent-updraft memory (obs channel 8).
-# Time constant ≈ 1/alpha steps = 50 steps = 25 s.  After leaving a thermal
-# the EMA stays elevated for ~150 steps, giving the agent a stable signal of
-# thermal-environment richness to condition its inter-thermal airspeed on.
+# Time constant ≈ 1/alpha steps = 50 steps = 25 s. 
 _W_EMA_ALPHA = 0.02
 
 

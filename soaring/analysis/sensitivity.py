@@ -1,7 +1,28 @@
 """
-Sensitivity analysis: four focused experiments to probe
-the robustness and generalisation of the learned soaring policy, and to
-identify which observation channels are most important for performance.
+Sensitivity analysis: four focused experiments.
+
+1. Observation ablation (retrain, 1 seed, 500K steps each):
+   - obs_full       : all 9 channels active (baseline)
+   - obs_no_ema     : remove channel 8 (thermal-richness EMA)
+   - obs_no_thermal : remove channels 1,2,3 (bearing/distance/strength of nearest thermal)
+   Metric: mean episode reward bar chart.
+
+2. N-thermals robustness (eval-only):
+   - Evaluates the main trained model at n_thermals in N_THERMALS_SWEEP.
+   Metric: success rate LINE plot.
+
+3. Course distance sweep (eval-only):
+   - Training bearing from actual training start (250, 6500).
+   - Distances: [5000, 8000, 12000, 15400 m].  15400 m ≈ training course.
+   Metric: success rate bar chart.
+
+4. Course heading sweep (eval-only):
+   - Fixed 6000 m from training start, three headings:
+     0° (East), −30° (shallow SE), −60° (steep SE).
+   Metric: success rate bar chart.
+
+Entry points:
+  main(seed, timesteps, results_dir, model_path, groups)
 """
 
 import os
@@ -23,20 +44,16 @@ RESULTS_DIR      = "results/sensitivity"
 N_THERMALS_SWEEP = [5, 10, 20, 40, 60, 80]
 N_EVAL_EPISODES  = 30
 
-# Training start/goal — must match START_X/Y, GOAL_X/Y in soaring_env.py
 _TRAIN_START = (START_X, START_Y)
 _TRAIN_GOAL  = (GOAL_X, GOAL_Y)
 
-# Actual training course bearing and distance
 _TRAIN_BEARING = np.arctan2(_TRAIN_GOAL[1] - _TRAIN_START[1],
-                             _TRAIN_GOAL[0] - _TRAIN_START[0])   # ≈ -20°
+                             _TRAIN_GOAL[0] - _TRAIN_START[0])  
 _TRAIN_DIST    = float(np.hypot(_TRAIN_GOAL[0] - _TRAIN_START[0],
-                                _TRAIN_GOAL[1] - _TRAIN_START[1]))  # ≈ 15 400 m
+                                _TRAIN_GOAL[1] - _TRAIN_START[1]))  
 
-# Course distance sweep: training bearing, sub- and full-training distances
-_DIST_SWEEP = [5000, 8000, 12000, round(_TRAIN_DIST / 100) * 100]   # last ≈ training
+_DIST_SWEEP = [5000, 8000, 12000, round(_TRAIN_DIST / 100) * 100]   
 
-# Course heading sweep: fixed 6 km course, courses centred in domain
 _DIST_HEADING = 6000.0
 _TRAIN_BEARING_DEG = round(np.rad2deg(_TRAIN_BEARING))   # ≈ -20°
 _HEADING_SWEEP = {
@@ -368,9 +385,9 @@ def plot_n_thermals(success_rates_by_seed, out_path):
         ax.plot(ns, [rates[n] * 100 for n in ns],
                 color=_COLORS[i], marker="o", linewidth=2, markersize=7, label=lbl)
     ax.axvline(40, color="gray", linestyle="--", linewidth=1.2, label=train_label)
-    ax.set_xlabel("Number of thermals", fontsize=11)
-    ax.set_ylabel("Success rate [%]", fontsize=11)
-    ax.set_title("Robustness to thermal density", fontsize=12)
+    ax.set_xlabel("Number of Thermals", fontsize=11)
+    ax.set_ylabel("Success Rate [%]", fontsize=11)
+    ax.set_title("Robustness to Thermal Density", fontsize=12)
     ax.set_ylim(0, 105)
     ax.set_xticks(ns)
     ax.legend(fontsize=9)
@@ -403,9 +420,9 @@ def plot_distance_sweep(success_rates_by_seed, out_path):
     if train_km is not None:
         ax.axvline(train_km, color="gray", linestyle="--", linewidth=1.2,
                    label=train_label)
-    ax.set_xlabel("Course distance [km]", fontsize=11)
-    ax.set_ylabel("Success rate [%]", fontsize=11)
-    ax.set_title("Generalisation: course distance", fontsize=12)
+    ax.set_xlabel("Course Distance [km]", fontsize=11)
+    ax.set_ylabel("Success Rate [%]", fontsize=11)
+    ax.set_title("Generalisation: Course Distance", fontsize=12)
     ax.set_ylim(0, 105)
     ax.set_xticks(xs)
     ax.legend(fontsize=9)
@@ -439,9 +456,9 @@ def plot_heading_sweep(success_rates_by_seed, out_path):
                 markersize=7, label=seed_lbl)
     ax.axvline(train_deg, color="gray", linestyle="--", linewidth=1.2,
                label=train_label)
-    ax.set_xlabel("Course heading [°]", fontsize=11)
-    ax.set_ylabel("Success rate [%]", fontsize=11)
-    ax.set_title("Generalisation: course heading", fontsize=12)
+    ax.set_xlabel("Course Heading [deg]", fontsize=11)
+    ax.set_ylabel("Success Rate [%]", fontsize=11)
+    ax.set_title("Generalisation: Course Heading", fontsize=12)
     ax.set_ylim(0, 105)
     ax.set_xticks(xs)
     ax.legend(fontsize=9)

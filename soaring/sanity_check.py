@@ -26,7 +26,7 @@ RESULTS_DIR = os.path.join(os.path.dirname(__file__), "..", "results")
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
 SEED         = 42
-MAX_STEPS    = 700          # enough to see glider sink out (~466 steps at 150 m)
+MAX_STEPS    = 1000          # enough to see glider sink out (~466 steps at 150 m)
 PHI_TARGET_CIRC = np.deg2rad(30.0)
 V_CIRC       = 19.0         # min-sink speed [m/s]
 V_GLIDE      = 25.0         # best-glide speed [m/s]

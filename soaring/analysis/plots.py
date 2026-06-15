@@ -1,5 +1,20 @@
 """
 Generate all report figures from saved results.
+
+Figures produced
+----------------
+1. maccready_curve.pdf        polar + speed-to-fly curve
+2. maccready_comparison_{algo}.pdf  learned vs analytical, all seeds pooled
+3. learning_curves_sac.pdf        SAC-only curves, one line per seed + mean band
+   learning_curves_comparison.pdf  SAC vs PPO mean ± std
+4. trajectory_full.pdf        full A-to-B flight over the thermal field
+5. trajectory_sample.pdf      one episode: tight circles + straight glides
+6. episode_timeseries.pdf     altitude, bank, airspeed vs time
+7. env_sensitivity.pdf        environment parameter bar chart
+8. algo_sensitivity.pdf       algorithm hyperparameter bar chart
+9. obs_ablation.pdf           observation ablation bar chart
+
+Entry point: main(results_dir, model_path)
 """
 
 import os
@@ -78,7 +93,7 @@ def plot_learning_curves(algo, out_dir):
 
     ax.set_xlabel("Episode", fontsize=11)
     ax.set_ylabel("Episode reward (50-ep moving avg)", fontsize=11)
-    ax.set_title(f"SAC learning curves ({len(curves)} seed(s))", fontsize=12)
+    ax.set_title(f"{algo.upper()} learning curves ({len(curves)} seed(s))", fontsize=12)
     ax.legend(fontsize=9)
     ax.grid(True, alpha=0.3)
     plt.tight_layout()
@@ -245,7 +260,7 @@ def plot_trajectory_full(env, out_dir):
     gx, gy, x0, x1, y0, y1 = _extended_grid(x, y)
     fig, (ax_map, ax_alt) = plt.subplots(
         1, 2, figsize=(18, 7),
-        gridspec_kw={"width_ratios": [2.5, 1]},
+        gridspec_kw={"width_ratios": [2.5, 1.3]},
     )
 
     snap0 = getattr(env, "_field_snapshots", [None])[0]
@@ -257,7 +272,7 @@ def plot_trajectory_full(env, out_dir):
     ax_map.plot(GOAL_X, GOAL_Y, "m*", ms=15, zorder=6, label="Goal B")
     ax_map.set_xlabel("x [m]  (East)",  fontsize=11)
     ax_map.set_ylabel("y [m]  (North)", fontsize=11)
-    ax_map.set_title("Cross-country flight — thermal field at t = 0 (colour = altitude)")
+    ax_map.set_title("Cross-country Flight | Thermal Field at t = 0 (colour = altitude: blue=low, cyan=high)", fontsize=12, wrap = True)
     ax_map.legend(fontsize=10)
     ax_map.set_aspect("equal")
     ax_map.set_xlim(x0, x1)
@@ -271,7 +286,7 @@ def plot_trajectory_full(env, out_dir):
                         alpha=0.25, color="green", label="Thermal contact")
     ax_alt.set_xlabel("Time [min]",    fontsize=11)
     ax_alt.set_ylabel("Altitude [m]",  fontsize=11)
-    ax_alt.set_title("Altitude profile")
+    ax_alt.set_title("Altitude Profile")
     ax_alt.legend(fontsize=9)
     ax_alt.grid(True, alpha=0.3)
     ax_alt.set_ylim(bottom=0)
@@ -372,8 +387,8 @@ def plot_trajectory_snapshots(env, out_dir):
     for ax in axes[1, :]:
         ax.set_xlabel("x [m]", fontsize=10)
 
-    fig.suptitle("Trajectory snapshots — thermal field at each moment "
-                 "(colour = altitude: blue=low, cyan=high)", fontsize=12)
+    fig.suptitle("Trajectory Snapshots | Thermal Field at each Moment "
+                 "(colour = altitude: blue=low, cyan=high)", fontsize=12, wrap=True)
     plt.tight_layout()
     _save(fig, os.path.join(out_dir, "trajectory_snapshots.pdf"))
 
@@ -396,32 +411,33 @@ def plot_episode_timeseries(env, out_dir):
 
     axes[0].plot(t, z, "b-", lw=1.5, label="Altitude AGL")
     axes[0].fill_between(t, 0, z, where=contacts, alpha=0.25,
-                         color="green", label="Thermal contact")
+                         color="green", label="Thermal Contact")
     axes[0].set_ylabel("Altitude [m]", fontsize=10)
-    axes[0].set_title("Episode flight: altitude, bank, heading, airspeed")
-    axes[0].legend(fontsize=9)
+    axes[0].set_title("Episode flight: altitude, bank, heading, airspeed", fontsize=12, wrap=True)
+    # axes[0].legend(fontsize=9)
     axes[0].grid(True, alpha=0.3)
 
     axes[1].plot(t, phi, "r-", lw=1.2)
     axes[1].axhline(0, color="k", lw=0.8, ls="--", alpha=0.5)
     axes[1].fill_between(t, -50, 50, where=contacts, alpha=0.15, color="green")
-    axes[1].set_ylabel("Bank angle [deg]", fontsize=10)
-    axes[1].set_ylim(-55, 55)
+    axes[1].set_ylabel("Bank Angle $\phi$ [deg]", fontsize=10)
+    axes[1].set_ylim(-60, 60)
     axes[1].grid(True, alpha=0.3)
 
     axes[2].plot(t, psi, "m-", lw=1.2)
     axes[2].fill_between(t, psi.min() - 5, psi.max() + 5,
                          where=contacts, alpha=0.15, color="green")
     axes[2].set_ylabel("Heading ψ [deg]", fontsize=10)
+    axes[2].set_ylim(0, 370)
     axes[2].grid(True, alpha=0.3)
 
     axes[3].plot(t, V, "g-", lw=1.5, label="Airspeed")
     axes[3].fill_between(t, 18, 45, where=contacts, alpha=0.15,
-                         color="green", label="Thermal contact")
+                         color="green", label="Thermal Contact")
     axes[3].set_ylabel("Airspeed [m/s]", fontsize=10)
     axes[3].set_xlabel("Time [s]",       fontsize=10)
-    axes[3].set_ylim(16, 48)
-    axes[3].legend(fontsize=9)
+    axes[3].set_ylim(15, 48)
+    # axes[3].legend(fontsize=9)
     axes[3].grid(True, alpha=0.3)
 
     plt.tight_layout()
@@ -578,7 +594,7 @@ def main(
         plot_trajectory_snapshots(env, model_dir)
         plot_episode_timeseries(env, model_dir)
         print("Generating animation ...")
-        make_animation(env, model_dir)
+        # make_animation(env, model_dir)
     else:
         print("No model_path supplied; skipping trajectory figures.")
 
@@ -586,5 +602,5 @@ def main(
 
 
 if __name__ == "__main__":
-    main(model_path=os.path.join(RESULTS_DIR, "models/sac_seed0"),
+    main(model_path=os.path.join(RESULTS_DIR, "models/sac_seed1"),
          algo="sac")

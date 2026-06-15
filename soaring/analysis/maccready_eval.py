@@ -1,6 +1,16 @@
 """
 MacCready recovery analysis: compare the learned speed-to-fly curve
 against the analytical MacCready optimum.
+
+Procedure
+---------
+1. Find all trained models for a given algorithm (e.g. all sac_seed*.zip).
+2. Evaluate each model at several fixed strength_scale settings.
+3. Pool results across seeds: more data per strength point, stronger evidence.
+4. Detect glide phases (low bank, between thermals) and log airspeed + climb rate.
+5. Plot learned speed vs achieved Mc, overlaid with the analytical curve.
+
+Entry point: main(algo, models_dir, out_dir)
 """
 
 import glob
@@ -163,8 +173,8 @@ def _plot_maccready(all_Mc, all_V, scales, title, out_dir, fig_name):
     ax_comp.axhline(_V_MAX, color="crimson", linestyle="--", lw=1.4,
                     label=f"$V_{{max}}$ = {_V_MAX:.0f} m/s (env limit)", zorder=4)
 
-    ax_comp.set_xlabel("Achieved climb rate in thermals  Mc [m/s]", fontsize=12)
-    ax_comp.set_ylabel("Glide-phase commanded airspeed [m/s]",       fontsize=12)
+    ax_comp.set_xlabel("Achieved Climb Rate in Thermals  Mc [m/s]", fontsize=12)
+    ax_comp.set_ylabel("Glide-phase Commanded Airspeed [m/s]",       fontsize=12)
     ax_comp.set_title(title, fontsize=12)
     ax_comp.legend(fontsize=8, ncol=2)
     ax_comp.grid(True, alpha=0.3)
@@ -225,7 +235,7 @@ def run_single(model_path, out_dir):
         print(f"Saved evaluation data to {data_path}")
 
     _plot_maccready(all_Mc, all_V, scales,
-                    title=f"Learned speed-to-fly vs analytical MacCready  ({model_name})",
+                    title=f"Learned Speed-to-Fly vs Analytical MacCready  ({model_name})",
                     out_dir=out_dir, fig_name="maccready_comparison.pdf")
 
 
@@ -259,7 +269,7 @@ def run(algo="sac", models_dir="results/models", out_dir=RESULTS_DIR):
         print(f"\nSaved evaluation data to {data_path}")
 
     _plot_maccready(all_Mc, all_V, scales,
-                    title=(f"Learned speed-to-fly vs analytical MacCready  "
+                    title=(f"Learned Speed-to-Fly vs Analytical MacCready  "
                            f"({algo.upper()}, {n_seeds} seed(s) pooled)"),
                     out_dir=out_dir,
                     fig_name=f"maccready_comparison_{algo}.pdf")

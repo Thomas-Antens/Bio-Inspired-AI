@@ -1,11 +1,11 @@
 {
   "algo": "sac",
   "seed": 0,
-  "timesteps": 1000000,
+  "timesteps": 1500000,
   "hyperparams": {
     "policy": "MlpPolicy",
     "learning_rate": 0.0003,
-    "buffer_size": 200000,
+    "buffer_size": 500000,
     "learning_starts": 5000,
     "batch_size": 256,
     "tau": 0.005,
@@ -23,7 +23,7 @@
     "verbose": 0
   },
   "field_kw": {
-    "n_thermals": 12,
+    "n_thermals": 40,
     "wind": [
       -5.0,
       0.0
@@ -44,6 +44,6 @@
   },
   "strength_range": [
     0.3,
-    2.5
+    4.0
   ]
 }
