@@ -1,23 +1,5 @@
 """
 Reward-structure analysis for the cross-country soaring environment.
-
-Covers the full design rationale in four report-quality figures:
-
-  fig1_fly_through_problem.pdf  -- original fly-through problem and combined fix
-  fig2_parameter_sweep.pdf      -- W_thermal bonus sweep + W_prog speed-gradient sweep
-  fig3_altitude_cap.pdf         -- proof that alt_scale decay prevents indefinite thermalling
-  fig4_reward_structure.pdf     -- final reward landscape (in-thermal + inter-thermal)
-
-Key design decisions reflected:
-  - Progress suppressed when w > LIFT_THR (makes circling beat fly-through per-step)
-  - Banking bonus W_THERMAL * w * DT when phi > BANK_THR (strongly prefers circling)
-  - alt_scale = max(0, 1 - margin/ALT_NORM) applied to (W_alt*dz + bonus):
-      provably exits any thermal at finite margin surplus (< ALT_NORM for any w)
-  - W_prog = 0.08 creates clear inter-thermal speed gradient (MacCready speed signal)
-
-Usage:
-    from soaring.env.reward_analysis import main
-    main()   # saves to results/reward_analysis/
 """
 
 import os

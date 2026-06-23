@@ -1,20 +1,5 @@
 """
 Generate all report figures from saved results.
-
-Figures produced
-----------------
-1. maccready_curve.pdf        polar + speed-to-fly curve
-2. maccready_comparison_{algo}.pdf  learned vs analytical, all seeds pooled
-3. learning_curves_sac.pdf        SAC-only curves, one line per seed + mean band
-   learning_curves_comparison.pdf  SAC vs PPO mean ± std
-4. trajectory_full.pdf        full A-to-B flight over the thermal field
-5. trajectory_sample.pdf      one episode: tight circles + straight glides
-6. episode_timeseries.pdf     altitude, bank, airspeed vs time
-7. env_sensitivity.pdf        environment parameter bar chart
-8. algo_sensitivity.pdf       algorithm hyperparameter bar chart
-9. obs_ablation.pdf           observation ablation bar chart
-
-Entry point: main(results_dir, model_path)
 """
 
 import os

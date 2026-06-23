@@ -10,7 +10,6 @@ Procedure
 4. Detect glide phases (low bank, between thermals) and log airspeed + climb rate.
 5. Plot learned speed vs achieved Mc, overlaid with the analytical curve.
 
-Entry point: main(algo, models_dir, out_dir)
 """
 
 import glob

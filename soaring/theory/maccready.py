@@ -8,8 +8,7 @@ Default parameters correspond to a standard class glider:
   mass 350 kg, wing area 10.5 m^2, AR 23, CD0 0.011,
   Oswald 0.92, rho 1.225 kg/m^3.
 
-This module is the single source of truth for the polar. The environment
-imports the GliderPolar class from here so the theory and physics are guaranteed
+The environment imports the GliderPolar class from here so the theory and physics are guaranteed
 to use the same coefficients.
 """
 
