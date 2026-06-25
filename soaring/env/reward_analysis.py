@@ -115,9 +115,9 @@ def fig1_fly_through_problem(out_dir):
     r_circ_orig = W_alt_orig*(w-_SINK_CIRCLE)*DT + W_prog_orig*(-HEADWIND*DT) + W_STEP
     rewards_orig = [
         r_circ_orig,
-        W_alt_orig*(w-POLAR.sink(25))*DT + W_prog_orig*20*DT*0.5 + W_STEP,
-        W_alt_orig*(w-POLAR.sink(35))*DT + W_prog_orig*30*DT*0.5 + W_STEP,
-        W_alt_orig*(w-POLAR.sink(40))*DT + W_prog_orig*35*DT*0.5 + W_STEP,
+        W_alt_orig*(w-POLAR.sink(25))*DT + W_prog_orig*20*DT + W_STEP,
+        W_alt_orig*(w-POLAR.sink(35))*DT + W_prog_orig*30*DT + W_STEP,
+        W_alt_orig*(w-POLAR.sink(40))*DT + W_prog_orig*35*DT + W_STEP,
     ]
     _panel(axes[0], rewards_orig,
            "Without Suppression\n(W_alt=0.70, W_prog=0.06, no bonus)")
